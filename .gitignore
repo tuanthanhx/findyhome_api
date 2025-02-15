@@ -1,0 +1,18 @@
+# Dependencies
+node_modules
+
+# yarn error logs
+yarn-error.log
+
+# Environment varibales
+.env*
+!.env*.example
+
+# docker volume
+docker
+
+# Code coverage
+coverage
+
+# build folder
+dist
