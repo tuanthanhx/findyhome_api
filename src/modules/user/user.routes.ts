@@ -1,33 +1,25 @@
 import express from 'express';
-import {
-  getUsers,
-  getUserStats,
-  getUserById,
-  activateUser,
-  deactivateUser,
-  createUser,
-  updateUser,
-  deleteUser,
-} from './user.controller';
+import controllers from './user.controller';
 import { userValidationRules } from './user.validator';
+import rules from './user.validator';
 
-// import { validate } from "../../middlewares/validate.middleware";
+// import { validate } from '../../middlewares/validate.middleware';
+import rules from './user.validator';
 
 const router = express.Router();
 
-router.get('/', getUsers);
-router.get('/stats', getUserStats);
-router.get('/:id', getUserById);
+router.get('/', rules.getUsers, controllers.getUsers);
+router.get('/stats', rules.getUserStats, controllers.getUserStats);
+router.get('/:id', rules.getUserById, controllers.getUserById);
+router.post('/', rules.createUser, controllers.createUser);
 
-router.patch('/:id/deactivate', deactivateUser); // 🆕 Ngừng hoạt động user
-router.patch('/:id/activate', activateUser); // 🆕 Hoạt động lại user
 
-router.post("", createUser);         // 🆕 API tạo user
-router.put("/:id", updateUser);         // 🆕 API cập nhật user
+router.put('/:id', rules.updateUser, controllers.updateUser);         // 🆕 API cập nhật user
 
-router.delete('/:id', deleteUser); // 🆕 Xoá user
 
-// router.post("/", userValidationRules, validate, createUser);
-router.post('/', createUser);
+
+router.delete('/:id', rules.deleteUser, controllers.deleteUser);
+router.patch('/:id/activate', rules.activateUser, controllers.activateUser);
+router.patch('/:id/deactivate', rules.deactivateUser, controllers.deactivateUser);
 
 export default router;

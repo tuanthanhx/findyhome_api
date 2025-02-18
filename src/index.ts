@@ -7,6 +7,8 @@ import mongoose from "mongoose";
 import config from './config/config';
 import routes from './routes';
 
+import { handleQueries, validateRules } from './middlewares/validate.middleware';
+
 // App
 const app = express();
 
@@ -14,6 +16,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(helmet());
+app.use([handleQueries, validateRules]);
 
 // Routes
 app.use("/api/v1", routes);

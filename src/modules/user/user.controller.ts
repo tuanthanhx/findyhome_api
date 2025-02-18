@@ -5,45 +5,27 @@ import { paginateAggregation } from '../../utils/paginate_aggregation';
 
 const isValidObjectId = (id: string) => Types.ObjectId.isValid(id);
 
-export const getUsers = async (req: Request, res: Response) => {
+const getUsers = async (req: Request, res: Response) => {
   try {
-    // const users = await User.find();
-    // res.json(users);
-
-    // const { page, limit, sortBy, filter } = req.query;
-    // const filterObj: Record<string, any> = filter ? { title: { $regex: filter, $options: 'i' } } : {};
-
-    // const options = {
-    //   page: Number(page) || 1,
-    //   limit: Number(limit) || 10,
-    //   sortBy: sortBy ? sortBy : 'createdAt:desc',
-    // };
-
-    // const result = await User.paginate(filterObj, options);
-    // res.status(200).json(result);
-
-    // const params = { page: 1, limit: 5, sort: { createdAt: -1 }, filter: { role: 2 } };
-    // const users = await paginateAggregation(User, [], params);
-    // res.status(200).json(users);
-
-    // 🟢 Extract pagination & sorting options from query
+    // Extract pagination & sorting options from query
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const sortField = (req.query.sortField as string) || 'createdAt';
     const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
 
-    // 🟢 Build filter object dynamically
+    // Build filter object dynamically
     const filter: Record<string, any> = {};
-    if (req.query.role) filter.role = req.query.role; // Filter by role
-    if (req.query.status) filter.status = req.query.status; // Filter by status
-    if (req.query.search) {
+    if (req.query.role) filter.role = req.query.role;
+    if (req.query.status) filter.status = req.query.status;
+
+    if (req.query.keyword) {
       filter.$or = [
-        { name: { $regex: req.query.search, $options: 'i' } },
-        { email: { $regex: req.query.search, $options: 'i' } },
+        { name: { $regex: req.query.keyword, $options: 'i' } },
+        { email: { $regex: req.query.keyword, $options: 'i' } },
       ];
     }
 
-    // 🟢 Define custom aggregation pipeline (e.g., lookup roles)
+    // Define custom aggregation pipeline (e.g., lookup roles)
     const pipeline = [
       // {
       //   $lookup: {
@@ -75,7 +57,7 @@ export const getUsers = async (req: Request, res: Response) => {
       },
     ];
 
-    // 🟢 Call pagination util function
+    // Call pagination util function
     const result = await paginateAggregation(User, pipeline, {
       page,
       limit,
@@ -85,31 +67,33 @@ export const getUsers = async (req: Request, res: Response) => {
 
     return res.json(result);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return res.status(500).json({
+      message: error.message || 'Internal server error',
+    });
   }
 };
 
-export const getUserStats = async (req: Request, res: Response) => {
+const getUserStats = async (req: Request, res: Response) => {
   try {
     const stats = await User.aggregate([
       {
         $group: {
-          _id: "$status",
+          _id: '$status',
           count: { $sum: 1 },
         },
       },
       {
         $group: {
           _id: null,
-          all: { $sum: "$count" }, // Tổng số users
+          all: { $sum: '$count' },
           active: {
             $sum: {
-              $cond: [{ $eq: ["$_id", 1] }, "$count", 0],
+              $cond: [{ $eq: ['$_id', 1] }, '$count', 0],
             },
           },
           inactive: {
             $sum: {
-              $cond: [{ $eq: ["$_id", 0] }, "$count", 0],
+              $cond: [{ $eq: ['$_id', 0] }, '$count', 0],
             },
           },
         },
@@ -127,20 +111,17 @@ export const getUserStats = async (req: Request, res: Response) => {
     return res.json(stats[0] || { all: 0, active: 0, inactive: 0 });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({
+      message: error.message || 'Internal server error',
+    });
   }
 };
 
-export const getUserById = async (req: Request, res: Response) => {
+const getUserById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    // 🛑 Kiểm tra ID hợp lệ
-    if (!isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid user ID" });
-    }
-
-    // 🔍 Aggregation để lấy user và thông tin role
+    // Aggregation to get user
     const user = await User.aggregate([
       { $match: { _id: new Types.ObjectId(id) } },
       // {
@@ -165,134 +146,84 @@ export const getUserById = async (req: Request, res: Response) => {
       },
     ]);
 
-    // ❌ Nếu không tìm thấy user
     if (!user.length) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    return res.json(user[0]); // Trả về user đầu tiên
+    return res.json(user[0]);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({
+      message: error.message || 'Internal server error',
+    });
   }
 };
 
-
-// 1️⃣ Ngừng hoạt động user (status = 0)
-export const deactivateUser = async (req: Request, res: Response) => {
+const createUser = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const {
+      email,
+      username,
+      password,
+      role,
+      status,
+      // referralId, // TODO 1
+      // referrerId, // TODO 2
+      avatar,
+      name,
+      dob,
+      nationalId,
+      phone,
+      address,
+      baseSalary,
+      bankAccount,
+      socialProfile,
+      bio,
+    } = req.body;
 
-    if (!isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid user ID" });
-    }
+    // Create new user
+    const newUser = new User({
+      email,
+      username,
+      password,
+      role: role || 2,
+      status,
+      // referralId,
+      // referrerId,
+      avatar,
+      name,
+      dob,
+      nationalId,
+      phone,
+      address,
+      baseSalary,
+      bankAccount,
+      socialProfile,
+      bio,
+    });
 
-    const user = await User.findByIdAndUpdate(
-      id,
-      { status: 0 },
-      { new: true }
-    );
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    return res.json({ message: "User deactivated successfully", user });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-// 2️⃣ Hoạt động lại user (status = 1)
-export const activateUser = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    if (!isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid user ID" });
-    }
-
-    const user = await User.findByIdAndUpdate(
-      id,
-      { status: 1 },
-      { new: true }
-    );
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    return res.json({ message: "User activated successfully", user });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-// 3️⃣ Xoá user
-export const deleteUser = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    if (!isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid user ID" });
-    }
-
-    const user = await User.findByIdAndDelete(id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    return res.json({ message: "User deleted successfully" });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-export const createUser = async (req: Request, res: Response) => {
-  try {
-    // const { name, email, password, role, status } = req.body;
-    const newData = { ...req.body };
-
-    // // Kiểm tra các trường bắt buộc
-    // if (!name || !email || !password) {
-    //   return res.status(400).json({ message: "Name, email and password are required" });
-    // }
-
-    // TODO:
-    /*
-      1) Validate data
-      2) Hash password
-      3) General referralId
-      4) Validate referrerId (if exists)
-    */
-
-    // Tạo mới user
-    const newUser = new User(newData);
-
+    // Save user to database
     await newUser.save();
 
     return res.status(201).json({
-      message: "User created successfully",
+      message: 'User created successfully',
       user: newUser,
     });
   } catch (error) {
-    console.error("Error creating user:", error);
-    return res.status(500).json({ message: "Internal server error", error });
+    console.error('Error creating user:', error);
+    return res.status(500).json({
+      message: error.message || 'Internal server error',
+    });
   }
 };
 
-// API cập nhật user
-export const updateUser = async (req: Request, res: Response) => {
+const updateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
     // Kiểm tra tính hợp lệ của ObjectId
     if (!isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid user ID" });
+      return res.status(400).json({ message: 'Invalid user ID' });
     }
 
     // Lấy dữ liệu cần update từ body
@@ -306,18 +237,98 @@ export const updateUser = async (req: Request, res: Response) => {
     delete updateData.updatedAt;
 
     // Cập nhật user
-    const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true });
+    const updatedUser = await User.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
 
     if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: 'User not found' });
     }
 
     return res.json({
-      message: "User updated successfully",
+      message: 'User updated successfully',
       user: updatedUser,
     });
   } catch (error) {
-    console.error("Error updating user:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    console.error('Error updating user:', error);
+    return res.status(500).json({
+      message: error.message || 'Internal server error',
+    });
   }
+};
+
+const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByIdAndDelete(id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: error.message || 'Internal server error',
+    });
+  }
+};
+
+const activateUser = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      { status: 1 },
+      { new: true },
+    ).select('_id email status');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.json({ message: 'User activated successfully', user });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: error.message || 'Internal server error',
+    });
+  }
+};
+
+const deactivateUser = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      { status: 0 },
+      { new: true },
+    ).select('_id email status');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.json({ message: 'User deactivated successfully', user });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: error.message || 'Internal server error',
+    });
+  }
+};
+
+export default {
+  getUsers,
+  getUserStats,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+  activateUser,
+  deactivateUser,
 };
