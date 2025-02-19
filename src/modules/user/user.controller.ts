@@ -218,31 +218,31 @@ const updateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const updateData: Partial<IUser> = {
-      ...(req.body.email !== undefined && { email: req.body.email }),
-      ...(req.body.username !== undefined && { username: req.body.username }),
-      ...(req.body.password !== undefined && { password: req.body.password }),
-      ...(req.body.role !== undefined && { role: req.body.role }),
-      ...(req.body.status !== undefined && { status: req.body.status }),
-      ...(req.body.avatar !== undefined && { avatar: req.body.avatar }),
-      ...(req.body.name !== undefined && { name: req.body.name }),
-      ...(req.body.dob !== undefined && { dob: req.body.dob }),
-      ...(req.body.nationalId !== undefined && {
-        nationalId: req.body.nationalId,
-      }),
-      ...(req.body.phone !== undefined && { phone: req.body.phone }),
-      ...(req.body.address !== undefined && { address: req.body.address }),
-      ...(req.body.baseSalary !== undefined && {
-        baseSalary: req.body.baseSalary,
-      }),
-      ...(req.body.bankAccount !== undefined && {
-        bankAccount: req.body.bankAccount,
-      }),
-      ...(req.body.socialProfile !== undefined && {
-        socialProfile: req.body.socialProfile,
-      }),
-      ...(req.body.bio !== undefined && { bio: req.body.bio }),
-    };
+    // Define allowed fields
+    const allowedFields = [
+      'email',
+      'username',
+      'password',
+      'role',
+      'status',
+      'avatar',
+      'name',
+      'dob',
+      'nationalId',
+      'phone',
+      'address',
+      'baseSalary',
+      'bankAccount',
+      'socialProfile',
+      'bio',
+    ];
+
+    const updateData: Partial<IUser> = allowedFields.reduce((acc, field) => {
+      if (req.body[field] !== undefined) {
+        acc[field] = req.body[field];
+      }
+      return acc;
+    }, {});
 
     // Fetch the user first
     const user = await User.findById(id);
