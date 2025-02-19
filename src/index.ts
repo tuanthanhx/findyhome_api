@@ -1,6 +1,9 @@
 import express from 'express';
-import cors from 'cors';
 import helmet from 'helmet';
+import xss from 'xss-clean';
+import cors from 'cors';
+import compression from 'compression';
+import ExpressMongoSanitize from 'express-mongo-sanitize';
 import mongoose from 'mongoose';
 import config from './config/config';
 import routes from './routes';
@@ -14,9 +17,16 @@ import {
 const app = express();
 
 // Middleware
-app.use(express.json());
-app.use(cors());
+
 app.use(helmet());
+app.use(cors());
+app.options('*', cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(xss());
+app.use(ExpressMongoSanitize());
+app.use(compression());
+
 app.use([handleQueries, validateRules]);
 
 // Routes
