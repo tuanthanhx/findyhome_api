@@ -167,8 +167,7 @@ const createUser = async (req: Request, res: Response) => {
       password,
       role,
       status,
-      // referralId, // TODO 1
-      // referrerId, // TODO 2
+      referrerId,
       avatar,
       name,
       dob,
@@ -188,8 +187,7 @@ const createUser = async (req: Request, res: Response) => {
       password,
       role: role || 2,
       status,
-      // referralId,
-      // referrerId,
+      referrerId,
       avatar,
       name,
       dob,
@@ -221,33 +219,48 @@ const updateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    // Kiểm tra tính hợp lệ của ObjectId
-    if (!isValidObjectId(id)) {
-      return res.status(400).json({ message: 'Invalid user ID' });
+    // Define allowed fields
+    const allowedFields = [
+      'email',
+      'username',
+      'password',
+      'role',
+      'status',
+      'avatar',
+      'name',
+      'dob',
+      'nationalId',
+      'phone',
+      'address',
+      'baseSalary',
+      'bankAccount',
+      'socialProfile',
+      'bio',
+    ];
+
+    const updateData: Partial<IUser> = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
     }
 
-    // Lấy dữ liệu cần update từ body
-    const updateData = { ...req.body };
+    // Fetch the user first
+    const user = await User.findById(id);
 
-    // Loại bỏ các trường không cho phép update
-    delete updateData._id;
-    delete updateData.__v;
-    delete updateData.referralId;
-    delete updateData.createdAt;
-    delete updateData.updatedAt;
-
-    // Cập nhật user
-    const updatedUser = await User.findByIdAndUpdate(id, updateData, {
-      new: true,
-    });
-
-    if (!updatedUser) {
+    if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Update allowed fields manually
+    Object.assign(user, updateData);
+
+    // Save user
+    await user.save();
+
     return res.json({
       message: 'User updated successfully',
-      user: updatedUser,
+      user,
     });
   } catch (error) {
     console.error('Error updating user:', error);
