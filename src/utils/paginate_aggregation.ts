@@ -17,7 +17,7 @@ interface PaginatedResult<T> {
   };
 }
 
-const paginateAggregation = async <T>(
+export const paginateAggregation = async <T>(
   model: Model<T>,
   pipeline: PipelineStage[],
   { page = 1, limit = 10, sort = {}, filter = {} }: PaginationParams,

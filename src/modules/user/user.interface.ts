@@ -4,7 +4,8 @@ export interface IUser extends Document {
   email: string;
   username?: string | null;
   password: string;
-  role: number;
+  refreshToken?: string;
+  roles: number[];
   status: number;
   referralId: number;
   referrerId?: number | null;

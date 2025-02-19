@@ -2,6 +2,8 @@ import { query, body, param } from 'express-validator';
 import User from './user.model';
 import { validateRules } from '../../middlewares/validate.middleware';
 
+const validRoles = [2, 3, 4, 6];
+
 const getUsers = [
   query('status')
     .optional()
@@ -48,7 +50,14 @@ const createUser = [
     .withMessage('Password is required')
     .isLength({ min: 6 })
     .withMessage('Password must be at least 6 characters'),
-  body('role').optional().isInt({ min: 1, max: 6 }).withMessage('Invalid role'),
+  body('roles')
+    .optional()
+    .isArray({ min: 1 })
+    .withMessage('Roles must be an array with at least one role')
+    .custom((roles: number[]) => {
+      return roles.every((role: number) => validRoles.includes(role));
+    })
+    .withMessage(`Each role must be one of [${validRoles.join(', ')}]`),
   body('status')
     .isIn([0, 1])
     .withMessage('Status must be either 0 or 1')
@@ -143,7 +152,14 @@ const updateUser = [
     .optional()
     .isLength({ min: 6 })
     .withMessage('Password must be at least 6 characters'),
-  body('role').optional().isInt({ min: 1, max: 6 }).withMessage('Invalid role'),
+  body('roles')
+    .optional()
+    .isArray({ min: 1 })
+    .withMessage('Roles must be an array with at least one role')
+    .custom((roles: number[]) => {
+      return roles.every((role: number) => validRoles.includes(role));
+    })
+    .withMessage(`Each role must be one of [${validRoles.join(', ')}]`),
   body('status')
     .isIn([0, 1])
     .withMessage('Status must be either 0 or 1')

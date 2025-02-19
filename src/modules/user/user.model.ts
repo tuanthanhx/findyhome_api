@@ -8,7 +8,12 @@ const UserSchema: Schema = new Schema(
     email: { type: String, required: true, unique: true },
     username: { type: String, sparse: true, unique: true },
     password: { type: String, required: true },
-    role: { type: Number, required: true, default: 2 },
+    refreshToken: { type: String, default: null },
+    roles: {
+      type: [Number],
+      required: true,
+      default: [2],
+    },
     status: { type: Number, required: true },
     referralId: { type: Number, sparse: true, unique: true },
     referrerId: { type: Number },
@@ -19,8 +24,8 @@ const UserSchema: Schema = new Schema(
     phone: { type: String, sparse: true, unique: true },
     address: { type: String },
     socialProfile: {
-      facebook: { type: String, default: '' },
-      tiktok: { type: String, default: '' },
+      facebook: { type: String, default: null },
+      tiktok: { type: String, default: null },
     },
     baseSalary: { type: Number },
     bankAccount: {
@@ -54,5 +59,11 @@ UserSchema.pre<IUser>(
     }
   },
 );
+
+UserSchema.methods.comparePassword = async function (
+  password: string,
+): Promise<boolean> {
+  return bcrypt.compare(password, this.password);
+};
 
 export default mongoose.model<IUser>('User', UserSchema);

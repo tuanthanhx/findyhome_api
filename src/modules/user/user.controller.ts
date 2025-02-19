@@ -4,7 +4,7 @@ import User from './user.model';
 import { IUser } from './user.interface';
 import { paginateAggregation } from '../../utils/paginate_aggregation';
 
-const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response) => {
   try {
     // Extract pagination & sorting options from query
     const page = parseInt(req.query.page as string, 10) || 1;
@@ -14,7 +14,7 @@ const getUsers = async (req: Request, res: Response) => {
 
     // Build filter object dynamically
     const filter: Record<string, any> = {};
-    if (req.query.role) filter.role = req.query.role;
+    if (req.query.roles) filter.roles = req.query.roles;
     if (req.query.status) filter.status = req.query.status;
 
     if (req.query.keyword) {
@@ -40,7 +40,7 @@ const getUsers = async (req: Request, res: Response) => {
           _id: 1,
           email: 1,
           username: 1,
-          role: 1, // role: "$roleInfo.name", // Extract role name from `roleInfo`
+          roles: 1, // roles: "$roleInfo.name", // Extract role name from `roleInfo`
           status: 1,
           avatar: 1,
           name: 1,
@@ -72,7 +72,7 @@ const getUsers = async (req: Request, res: Response) => {
   }
 };
 
-const getUserStats = async (req: Request, res: Response) => {
+export const getUserStats = async (req: Request, res: Response) => {
   try {
     const stats = await User.aggregate([
       {
@@ -116,7 +116,7 @@ const getUserStats = async (req: Request, res: Response) => {
   }
 };
 
-const getUserById = async (req: Request, res: Response) => {
+export const getUserById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -138,7 +138,7 @@ const getUserById = async (req: Request, res: Response) => {
           // name: 1,
           // email: 1,
           // status: 1,
-          // role: "$roleInfo.name", // Chỉ lấy tên role
+          // roles: "$roleInfo.name", // Chỉ lấy tên role
           // createdAt: 1,
           password: 0,
         },
@@ -158,13 +158,13 @@ const getUserById = async (req: Request, res: Response) => {
   }
 };
 
-const createUser = async (req: Request, res: Response) => {
+export const createUser = async (req: Request, res: Response) => {
   try {
     const {
       email,
       username,
       password,
-      role,
+      roles,
       status,
       referrerId,
       avatar,
@@ -184,7 +184,7 @@ const createUser = async (req: Request, res: Response) => {
       email,
       username,
       password,
-      role: role || 2,
+      roles: roles || [2],
       status,
       referrerId,
       avatar,
@@ -214,7 +214,7 @@ const createUser = async (req: Request, res: Response) => {
   }
 };
 
-const updateUser = async (req: Request, res: Response) => {
+export const updateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -223,7 +223,7 @@ const updateUser = async (req: Request, res: Response) => {
       'email',
       'username',
       'password',
-      'role',
+      'roles',
       'status',
       'avatar',
       'name',
@@ -269,7 +269,7 @@ const updateUser = async (req: Request, res: Response) => {
   }
 };
 
-const deleteUser = async (req: Request, res: Response) => {
+export const deleteUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -288,7 +288,7 @@ const deleteUser = async (req: Request, res: Response) => {
   }
 };
 
-const activateUser = async (req: Request, res: Response) => {
+export const activateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -311,7 +311,7 @@ const activateUser = async (req: Request, res: Response) => {
   }
 };
 
-const deactivateUser = async (req: Request, res: Response) => {
+export const deactivateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 

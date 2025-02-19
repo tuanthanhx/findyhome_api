@@ -1,6 +1,7 @@
 import express, { Router } from 'express';
 import config from './config/config';
 
+import authRoute from './modules/auth/auth.routes';
 import userRoute from './modules/user/user.routes';
 // import productRoute from "./modules/product/product.routes";
 
@@ -12,6 +13,7 @@ interface IRoute {
 }
 
 const defaultIRoutes: IRoute[] = [
+  { path: '/auth', route: authRoute },
   { path: '/users', route: userRoute },
   // { path: "/products", route: productRoute },
 ];

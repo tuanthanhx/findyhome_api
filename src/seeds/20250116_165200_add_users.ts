@@ -11,7 +11,7 @@ const generateUsers = (count: number) => {
       email: faker.internet.email({ firstName: name }),
       username: faker.internet.username({ firstName: name }),
       password: faker.internet.password(),
-      role: faker.helpers.arrayElement([2, 6, 3]),
+      roles: [3],
       status: faker.helpers.arrayElement([0, 1]),
       avatar: faker.image.avatar(),
       name,
@@ -46,7 +46,7 @@ const seedDatabase = async () => {
     // await User.deleteMany();
     console.log('✅ Existing Data Deleted!');
     console.log('🔄 Seeding Data...');
-    const users = await generateUsers(10);
+    const users = await generateUsers(1);
     await Promise.all(users.map((userData) => User.create(userData)));
     console.log('✅ Seed data inserted successfully!');
   } catch (error) {
