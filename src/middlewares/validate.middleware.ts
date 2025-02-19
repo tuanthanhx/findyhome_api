@@ -15,14 +15,6 @@ export const validateRules = (
 };
 
 export const handleQueries = [
-  (req: Request, res: Response, next: NextFunction): void => {
-    Object.keys(req.query).forEach((key) => {
-      if (typeof req.query[key] === 'string') {
-        req.query[key] = (req.query[key] as string).trim();
-      }
-    });
-    next();
-  },
   query('page')
     .optional()
     .isInt({ min: 1 })
