@@ -5,7 +5,7 @@ import User from '../modules/user/user.model';
 
 const generateUsers = (count: number) => {
   const users = [];
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < count; i += 1) {
     const name = faker.person.fullName();
     users.push({
       email: faker.internet.email({ firstName: name }),
@@ -47,9 +47,7 @@ const seedDatabase = async () => {
     console.log('✅ Existing Data Deleted!');
     console.log('🔄 Seeding Data...');
     const users = await generateUsers(10);
-    for (const userData of users) {
-      await User.create(userData);
-    }
+    await Promise.all(users.map((userData) => User.create(userData)));
     console.log('✅ Seed data inserted successfully!');
   } catch (error) {
     console.error('❌ Error inserting seed data:', error);

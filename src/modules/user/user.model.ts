@@ -35,21 +35,24 @@ const UserSchema: Schema = new Schema(
   },
 );
 
-UserSchema.pre<IUser>('save', async function (next: (err?: CallbackError) => void) {
-  if (!this.referralId) {
-    const referralId = await getNextReferralId();
-    if (referralId) {
-      this.referralId = referralId;
+UserSchema.pre<IUser>(
+  'save',
+  async function preSaveHook(next: (err?: CallbackError) => void) {
+    if (!this.referralId) {
+      const referralId = await getNextReferralId();
+      if (referralId) {
+        this.referralId = referralId;
+      }
     }
-  }
-  if (!this.isModified('password')) return next();
-  try {
-    const salt = await bcrypt.genSalt(8);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (err) {
-    next(err as CallbackError);
-  }
-});
+    if (!this.isModified('password')) return next();
+    try {
+      const salt = await bcrypt.genSalt(8);
+      this.password = await bcrypt.hash(this.password, salt);
+      return next();
+    } catch (err) {
+      return next(err as CallbackError);
+    }
+  },
+);
 
 export default mongoose.model<IUser>('User', UserSchema);

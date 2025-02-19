@@ -1,15 +1,14 @@
 import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 import User from './user.model';
+import { IUser } from './user.interface';
 import { paginateAggregation } from '../../utils/paginate_aggregation';
-
-const isValidObjectId = (id: string) => Types.ObjectId.isValid(id);
 
 const getUsers = async (req: Request, res: Response) => {
   try {
     // Extract pagination & sorting options from query
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 10;
     const sortField = (req.query.sortField as string) || 'createdAt';
     const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
 
@@ -238,12 +237,12 @@ const updateUser = async (req: Request, res: Response) => {
       'bio',
     ];
 
-    const updateData: Partial<IUser> = {};
-    for (const field of allowedFields) {
+    const updateData: Partial<IUser> = allowedFields.reduce((acc, field) => {
       if (req.body[field] !== undefined) {
-        updateData[field] = req.body[field];
+        acc[field] = req.body[field];
       }
-    }
+      return acc;
+    }, {});
 
     // Fetch the user first
     const user = await User.findById(id);

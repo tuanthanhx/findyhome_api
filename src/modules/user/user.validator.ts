@@ -39,6 +39,7 @@ const createUser = [
       if (!username) return true;
       const existingUser = await User.findOne({ username });
       if (existingUser) throw new Error('Username already exists');
+      return true;
     })
     .trim()
     .escape(),
@@ -58,8 +59,9 @@ const createUser = [
     .withMessage('ReferrerId ID must be a number')
     .custom(async (referrerId: number) => {
       const referrerExists = await User.exists({ referralId: referrerId });
-      if (!Boolean(referrerExists))
+      if (!referrerExists)
         throw new Error('Referrer with that ID does not exist');
+      return true;
     }),
   body('avatar').optional().isURL().withMessage('Avatar must be a valid URL'),
   body('name').optional().isString(),
@@ -71,6 +73,7 @@ const createUser = [
       if (!nationalId) return true;
       const existingUser = await User.findOne({ nationalId });
       if (existingUser) throw new Error('National ID already exists');
+      return true;
     }),
   body('phone')
     .optional()
@@ -79,6 +82,7 @@ const createUser = [
       if (!phone) return true;
       const existingUser = await User.findOne({ phone });
       if (existingUser) throw new Error('Phone number already exists');
+      return true;
     }),
   body('address').optional().isString(),
   body('baseSalary')
@@ -96,6 +100,7 @@ const createUser = [
         'bankAccount.accountNumber': accountNumber,
       });
       if (existingUser) throw new Error('Bank account number already exists');
+      return true;
     }),
   body('socialProfile.facebook')
     .optional()
@@ -120,6 +125,7 @@ const updateUser = [
       if (existingUser && existingUser.id !== req.params.id) {
         throw new Error('Email already exists');
       }
+      return true;
     }),
   body('username')
     .optional()
@@ -129,6 +135,7 @@ const updateUser = [
       if (existingUser && existingUser.id !== req.params.id) {
         throw new Error('Username already exists');
       }
+      return true;
     })
     .trim()
     .escape(),
@@ -153,6 +160,7 @@ const updateUser = [
       if (existingUser && existingUser.id !== req.params.id) {
         throw new Error('National ID already exists');
       }
+      return true;
     }),
   body('phone')
     .optional()
@@ -163,6 +171,7 @@ const updateUser = [
       if (existingUser && existingUser.id !== req.params.id) {
         throw new Error('Phone number already exists');
       }
+      return true;
     }),
 
   body('address').optional().isString(),
@@ -183,6 +192,7 @@ const updateUser = [
       if (existingUser && existingUser.id !== req.params.id) {
         throw new Error('Bank account number already exists');
       }
+      return true;
     }),
   body('socialProfile.facebook')
     .optional()

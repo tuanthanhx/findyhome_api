@@ -1,4 +1,4 @@
-import { PipelineStage, Model } from "mongoose";
+import { PipelineStage, Model } from 'mongoose';
 
 interface PaginationParams {
   page?: number;
@@ -17,11 +17,11 @@ interface PaginatedResult<T> {
   };
 }
 
-export async function paginateAggregation<T>(
+const paginateAggregation = async <T>(
   model: Model<T>,
   pipeline: PipelineStage[],
-  { page = 1, limit = 10, sort = {}, filter = {} }: PaginationParams
-): Promise<PaginatedResult<T>> {
+  { page = 1, limit = 10, sort = {}, filter = {} }: PaginationParams,
+): Promise<PaginatedResult<T>> => {
   const skip = (page - 1) * limit;
 
   const aggregationPipeline: PipelineStage[] = [
@@ -31,19 +31,19 @@ export async function paginateAggregation<T>(
     {
       $facet: {
         data: [{ $skip: skip }, { $limit: limit }],
-        totalCount: [{ $count: "count" }],
+        totalCount: [{ $count: 'count' }],
       },
     },
     {
       $unwind: {
-        path: "$totalCount",
+        path: '$totalCount',
         preserveNullAndEmptyArrays: true,
       },
     },
     {
       $project: {
         data: 1,
-        total: { $ifNull: ["$totalCount.count", 0] },
+        total: { $ifNull: ['$totalCount.count', 0] },
       },
     },
   ];
@@ -56,4 +56,6 @@ export async function paginateAggregation<T>(
     data: result[0]?.data || [],
     pagination: { total, page, limit, totalPages },
   };
-}
+};
+
+export default { paginateAggregation };

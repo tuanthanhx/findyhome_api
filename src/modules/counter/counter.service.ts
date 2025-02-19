@@ -1,6 +1,6 @@
 import Counter from './counter.model';
 
-export const getNextReferralId = async (): Promise<number> => {
+const getNextReferralId = async (): Promise<number> => {
   const initialValue = 1000000;
 
   const counter = await Counter.findOneAndUpdate(
@@ -21,3 +21,5 @@ export const getNextReferralId = async (): Promise<number> => {
 
   return counter?.value ? Number(counter?.value) : initialValue;
 };
+
+export default { getNextReferralId };

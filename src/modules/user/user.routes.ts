@@ -1,9 +1,5 @@
 import express from 'express';
 import controllers from './user.controller';
-import { userValidationRules } from './user.validator';
-import rules from './user.validator';
-
-// import { validate } from '../../middlewares/validate.middleware';
 import rules from './user.validator';
 
 const router = express.Router();
@@ -15,6 +11,10 @@ router.post('/', rules.createUser, controllers.createUser);
 router.put('/:id', rules.updateUser, controllers.updateUser);
 router.delete('/:id', rules.deleteUser, controllers.deleteUser);
 router.patch('/:id/activate', rules.activateUser, controllers.activateUser);
-router.patch('/:id/deactivate', rules.deactivateUser, controllers.deactivateUser);
+router.patch(
+  '/:id/deactivate',
+  rules.deactivateUser,
+  controllers.deactivateUser,
+);
 
 export default router;
