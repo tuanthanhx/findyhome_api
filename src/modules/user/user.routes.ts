@@ -1,24 +1,14 @@
 import express from 'express';
 import controllers from './user.controller';
 import rules from './user.validator';
-import {
-  authenticateToken,
-  authorizeRole,
-} from '../../middlewares/auth.middleware';
+import { authenticateToken } from '../../middlewares/auth.middleware';
 
 const router = express.Router();
 
-router.get(
-  '/',
-  authenticateToken,
-  authorizeRole(),
-  rules.getUsers,
-  controllers.getUsers,
-);
+router.get('/', authenticateToken, rules.getUsers, controllers.getUsers);
 router.get(
   '/stats',
-  authenticateToken,
-  authorizeRole([6]),
+  authenticateToken([2]),
   rules.getUserStats,
   controllers.getUserStats,
 );
