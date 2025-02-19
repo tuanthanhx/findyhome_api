@@ -48,7 +48,6 @@ export const logout = async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.cookies;
     if (refreshToken) {
-      console.log(refreshToken);
       const user = await User.findOne({ refreshToken });
       if (user) {
         user.refreshToken = null;
@@ -58,7 +57,6 @@ export const logout = async (req: Request, res: Response) => {
     res.clearCookie('refreshToken');
     res.json({ message: 'Logged out' });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };

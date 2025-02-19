@@ -74,6 +74,10 @@ export const getUsers = async (req: Request, res: Response) => {
 
 export const getUserStats = async (req: Request, res: Response) => {
   try {
+    const { user } = req;
+
+    console.log(user);
+
     const stats = await User.aggregate([
       {
         $group: {
