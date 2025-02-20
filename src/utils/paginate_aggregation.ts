@@ -1,10 +1,10 @@
-import { PipelineStage, Model } from 'mongoose';
+import { PipelineStage, Model, FilterQuery } from 'mongoose';
 
-interface PaginationParams {
+interface PaginationParams<T> {
   page?: number;
   limit?: number;
   sort?: Record<string, 1 | -1>;
-  filter?: Record<string, any>;
+  filter?: FilterQuery<T>;
 }
 
 interface PaginatedResult<T> {
@@ -20,7 +20,7 @@ interface PaginatedResult<T> {
 export const paginateAggregation = async <T>(
   model: Model<T>,
   pipeline: PipelineStage[],
-  { page = 1, limit = 10, sort = {}, filter = {} }: PaginationParams,
+  { page = 1, limit = 10, sort = {}, filter = {} }: PaginationParams<T>,
 ): Promise<PaginatedResult<T>> => {
   const skip = (page - 1) * limit;
 

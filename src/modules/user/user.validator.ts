@@ -1,9 +1,11 @@
+import { RequestHandler } from 'express';
 import { query, body, param, ValidationChain, Meta } from 'express-validator';
+import { validateRules } from '../../middlewares/validate.middleware';
 import User from './user.model';
 
 const validRoles = [2, 3, 4, 6];
 
-const getUsers: ValidationChain[] = [
+const getUsers: Array<ValidationChain | RequestHandler> = [
   query('status')
     .optional()
     .isIn([0, 1])
@@ -14,15 +16,17 @@ const getUsers: ValidationChain[] = [
     .isInt({ min: 1, max: 6 })
     .withMessage('role must be an integer between 1 and 6')
     .toInt(),
+  validateRules,
 ];
 
-const getUserStats: ValidationChain[] = [];
+const getUserStats: Array<ValidationChain | RequestHandler> = [];
 
-const getUserById: ValidationChain[] = [
+const getUserById: Array<ValidationChain | RequestHandler> = [
   param('id').isMongoId().withMessage('Invalid MongoDB ID'),
+  validateRules,
 ];
 
-const createUser: ValidationChain[] = [
+const createUser: Array<ValidationChain | RequestHandler> = [
   body('email')
     .notEmpty()
     .withMessage('Email is required')
@@ -117,9 +121,10 @@ const createUser: ValidationChain[] = [
     .isURL()
     .withMessage('Invalid TikTok URL'),
   body('bio').optional().isString(),
+  validateRules,
 ];
 
-const updateUser: ValidationChain[] = [
+const updateUser: Array<ValidationChain | RequestHandler> = [
   param('id').isMongoId().withMessage('Invalid MongoDB ID'),
   body('email')
     .optional()
@@ -189,7 +194,6 @@ const updateUser: ValidationChain[] = [
       }
       return true;
     }),
-
   body('address').optional().isString(),
   body('baseSalary')
     .optional()
@@ -220,18 +224,22 @@ const updateUser: ValidationChain[] = [
     .isURL()
     .withMessage('Invalid TikTok URL'),
   body('bio').optional().isString(),
+  validateRules,
 ];
 
-const deleteUser: ValidationChain[] = [
+const deleteUser: Array<ValidationChain | RequestHandler> = [
   param('id').isMongoId().withMessage('Invalid MongoDB ID'),
+  validateRules,
 ];
 
-const activateUser: ValidationChain[] = [
+const activateUser: Array<ValidationChain | RequestHandler> = [
   param('id').isMongoId().withMessage('Invalid MongoDB ID'),
+  validateRules,
 ];
 
-const deactivateUser: ValidationChain[] = [
+const deactivateUser: Array<ValidationChain | RequestHandler> = [
   param('id').isMongoId().withMessage('Invalid MongoDB ID'),
+  validateRules,
 ];
 
 export default {

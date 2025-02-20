@@ -1,31 +1,31 @@
 import express from 'express';
 import controllers from './user.controller';
 import rules from './user.validator';
-import { authenticateToken } from '../../middlewares/auth.middleware';
-import { validateRules } from '../../middlewares/validate.middleware';
+// import { authenticateToken } from '../../middlewares/auth.middleware';
 
 const router = express.Router();
 
-router.get('/', authenticateToken(), rules.getUsers, controllers.getUsers);
+router.get('/', rules.getUsers, controllers.getUsers);
 router.get(
   '/stats',
-  authenticateToken([2]),
   rules.getUserStats,
+
   controllers.getUserStats,
 );
-router.get('/:id', rules.getUserById, validateRules, controllers.getUserById);
-router.post('/', rules.createUser, validateRules, controllers.createUser);
-router.put('/:id', rules.updateUser, validateRules, controllers.updateUser);
-router.delete('/:id', rules.deleteUser, validateRules, controllers.deleteUser);
+router.get('/:id', rules.getUserById, controllers.getUserById);
+router.post('/', rules.createUser, controllers.createUser);
+router.put('/:id', rules.updateUser, controllers.updateUser);
+router.delete('/:id', rules.deleteUser, controllers.deleteUser);
 router.patch(
   '/:id/activate',
   rules.activateUser,
-  validateRules,
+
   controllers.activateUser,
 );
 router.patch(
   '/:id/deactivate',
   rules.deactivateUser,
+
   controllers.deactivateUser,
 );
 

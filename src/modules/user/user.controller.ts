@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Types } from 'mongoose';
+import { Types, FilterQuery } from 'mongoose';
 import User from './user.model';
 import { IUser } from './user.interface';
 import { paginateAggregation } from '../../utils/paginate_aggregation';
@@ -13,9 +13,9 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
     const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
 
     // Build filter object dynamically
-    const filter: Record<string, any> = {};
-    if (req.query.roles) filter.roles = req.query.roles;
-    if (req.query.status) filter.status = req.query.status;
+    const filter: FilterQuery<IUser> = {};
+    // if (req.query.roles) filter.roles = req.query.roles as string; // FIX OR TEST LATER
+    if (req.query.status) filter.status = req.query.status as string;
 
     if (req.query.keyword) {
       filter.$or = [
