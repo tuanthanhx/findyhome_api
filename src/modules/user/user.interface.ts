@@ -4,7 +4,7 @@ export interface IUser extends Document {
   email: string;
   username?: string | null;
   password: string;
-  refreshToken?: string;
+  refreshToken?: string | null;
   roles: number[];
   status: number;
   referralId: number;
@@ -28,4 +28,5 @@ export interface IUser extends Document {
   bio?: string | null;
   createdAt: Date;
   updatedAt: Date;
+  comparePassword(password: string): Promise<boolean>;
 }

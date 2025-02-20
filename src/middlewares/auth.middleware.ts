@@ -2,26 +2,38 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import config from '../config/config';
 
+interface UserPayload {
+  id: string;
+  roles: number[];
+  iat?: number;
+  exp?: number;
+}
+
 export const authenticateToken = (roles: number[] = []) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
-      return res
-        .status(401)
-        .json({ message: 'Unauthorized - No token provided' });
+      res.status(401).json({ message: 'Unauthorized - No token provided' });
+      return;
     }
 
-    jwt.verify(token, config.jwtSecret, (err, decoded: any) => {
+    jwt.verify(token, config.jwtSecret, (err, decoded) => {
       if (err) {
-        return res.status(403).json({ message: 'Forbidden - Invalid token' });
+        res.status(403).json({ message: 'Forbidden - Invalid token' });
+        return;
       }
 
-      req.user = decoded;
+      const userPayload = decoded as UserPayload;
 
-      if (roles.length === 0 || roles.includes(decoded.roles[0])) {
-        return next();
+      console.log(userPayload);
+
+      req.user = userPayload;
+
+      if (roles.length === 0 || roles.includes(userPayload?.roles[0])) {
+        next();
+        return;
       }
 
       return res

@@ -1,7 +1,6 @@
-import { body, cookie } from 'express-validator';
-import { validateRules } from '../../middlewares/validate.middleware';
+import { body, cookie, ValidationChain } from 'express-validator';
 
-const login = [
+const login: ValidationChain[] = [
   body('email')
     .notEmpty()
     .withMessage('Email is required')
@@ -12,14 +11,12 @@ const login = [
     .withMessage('Password is required')
     .isLength({ min: 6 })
     .withMessage('Password must be at least 6 characters'),
-  validateRules,
 ];
 
-const logout = [];
+const logout: ValidationChain[] = [];
 
-const refresh = [
+const refresh: ValidationChain[] = [
   cookie('refreshToken').notEmpty().withMessage('Refresh token is required'),
-  validateRules,
 ];
 
 export default {

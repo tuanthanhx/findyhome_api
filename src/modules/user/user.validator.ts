@@ -1,10 +1,9 @@
-import { query, body, param } from 'express-validator';
+import { query, body, param, ValidationChain, Meta } from 'express-validator';
 import User from './user.model';
-import { validateRules } from '../../middlewares/validate.middleware';
 
 const validRoles = [2, 3, 4, 6];
 
-const getUsers = [
+const getUsers: ValidationChain[] = [
   query('status')
     .optional()
     .isIn([0, 1])
@@ -15,17 +14,15 @@ const getUsers = [
     .isInt({ min: 1, max: 6 })
     .withMessage('role must be an integer between 1 and 6')
     .toInt(),
-  validateRules,
 ];
 
-const getUserStats = [];
+const getUserStats: ValidationChain[] = [];
 
-const getUserById = [
+const getUserById: ValidationChain[] = [
   param('id').isMongoId().withMessage('Invalid MongoDB ID'),
-  validateRules,
 ];
 
-const createUser = [
+const createUser: ValidationChain[] = [
   body('email')
     .notEmpty()
     .withMessage('Email is required')
@@ -120,28 +117,29 @@ const createUser = [
     .isURL()
     .withMessage('Invalid TikTok URL'),
   body('bio').optional().isString(),
-  validateRules,
 ];
 
-const updateUser = [
+const updateUser: ValidationChain[] = [
   param('id').isMongoId().withMessage('Invalid MongoDB ID'),
   body('email')
     .optional()
     .isEmail()
     .withMessage('Invalid email format')
-    .custom(async (email, { req }: { req: Request }) => {
+    .custom(async (email: string, meta: Meta) => {
+      const { req } = meta;
       const existingUser = await User.findOne({ email });
-      if (existingUser && existingUser.id !== req.params.id) {
+      if (existingUser && existingUser.id !== req.params?.id) {
         throw new Error('Email already exists');
       }
       return true;
     }),
   body('username')
     .optional()
-    .custom(async (username: string, { req }: { req: Request }) => {
+    .custom(async (username: string, meta: Meta) => {
+      const { req } = meta;
       if (!username) return true;
       const existingUser = await User.findOne({ username });
-      if (existingUser && existingUser.id !== req.params.id) {
+      if (existingUser && existingUser.id !== req.params?.id) {
         throw new Error('Username already exists');
       }
       return true;
@@ -170,10 +168,11 @@ const updateUser = [
   body('nationalId')
     .optional()
     .isString()
-    .custom(async (nationalId: string, { req }: { req: Request }) => {
+    .custom(async (nationalId: string, meta: Meta) => {
+      const { req } = meta;
       if (!nationalId) return true;
       const existingUser = await User.findOne({ nationalId });
-      if (existingUser && existingUser.id !== req.params.id) {
+      if (existingUser && existingUser.id !== req.params?.id) {
         throw new Error('National ID already exists');
       }
       return true;
@@ -181,10 +180,11 @@ const updateUser = [
   body('phone')
     .optional()
     .isString()
-    .custom(async (phone: string, { req }: { req: Request }) => {
+    .custom(async (phone: string, meta: Meta) => {
+      const { req } = meta;
       if (!phone) return true;
       const existingUser = await User.findOne({ phone });
-      if (existingUser && existingUser.id !== req.params.id) {
+      if (existingUser && existingUser.id !== req.params?.id) {
         throw new Error('Phone number already exists');
       }
       return true;
@@ -200,12 +200,13 @@ const updateUser = [
   body('bankAccount.accountNumber')
     .optional()
     .isString()
-    .custom(async (accountNumber: string, { req }: { req: Request }) => {
+    .custom(async (accountNumber: string, meta: Meta) => {
+      const { req } = meta;
       if (!accountNumber) return true;
       const existingUser = await User.findOne({
         'bankAccount.accountNumber': accountNumber,
       });
-      if (existingUser && existingUser.id !== req.params.id) {
+      if (existingUser && existingUser.id !== req.params?.id) {
         throw new Error('Bank account number already exists');
       }
       return true;
@@ -219,22 +220,18 @@ const updateUser = [
     .isURL()
     .withMessage('Invalid TikTok URL'),
   body('bio').optional().isString(),
-  validateRules,
 ];
 
-const deleteUser = [
+const deleteUser: ValidationChain[] = [
   param('id').isMongoId().withMessage('Invalid MongoDB ID'),
-  validateRules,
 ];
 
-const activateUser = [
+const activateUser: ValidationChain[] = [
   param('id').isMongoId().withMessage('Invalid MongoDB ID'),
-  validateRules,
 ];
 
-const deactivateUser = [
+const deactivateUser: ValidationChain[] = [
   param('id').isMongoId().withMessage('Invalid MongoDB ID'),
-  validateRules,
 ];
 
 export default {

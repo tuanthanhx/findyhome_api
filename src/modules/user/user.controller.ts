@@ -4,7 +4,7 @@ import User from './user.model';
 import { IUser } from './user.interface';
 import { paginateAggregation } from '../../utils/paginate_aggregation';
 
-export const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response): Promise<void> => {
   try {
     // Extract pagination & sorting options from query
     const page = parseInt(req.query.page as string, 10) || 1;
@@ -64,20 +64,20 @@ export const getUsers = async (req: Request, res: Response) => {
       filter,
     });
 
-    return res.json(result);
+    res.json(result);
   } catch (error) {
-    return res.status(500).json({
-      message: error.message || 'Internal server error',
+    const err = error as Error;
+    res.status(500).json({
+      message: err.message || 'Internal server error',
     });
   }
 };
 
-export const getUserStats = async (req: Request, res: Response) => {
+export const getUserStats = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
-    const { user } = req;
-
-    console.log(user);
-
     const stats = await User.aggregate([
       {
         $group: {
@@ -111,16 +111,19 @@ export const getUserStats = async (req: Request, res: Response) => {
       },
     ]);
 
-    return res.json(stats[0] || { all: 0, active: 0, inactive: 0 });
+    res.json(stats[0] || { all: 0, active: 0, inactive: 0 });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      message: error.message || 'Internal server error',
+    const err = error as Error;
+    res.status(500).json({
+      message: err.message || 'Internal server error',
     });
   }
 };
 
-export const getUserById = async (req: Request, res: Response) => {
+export const getUserById = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { id } = req.params;
 
@@ -150,19 +153,23 @@ export const getUserById = async (req: Request, res: Response) => {
     ]);
 
     if (!user.length) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
-    return res.json(user[0]);
+    res.json(user[0]);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      message: error.message || 'Internal server error',
+    const err = error as Error;
+    res.status(500).json({
+      message: err.message || 'Internal server error',
     });
   }
 };
 
-export const createUser = async (req: Request, res: Response) => {
+export const createUser = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const {
       email,
@@ -206,24 +213,27 @@ export const createUser = async (req: Request, res: Response) => {
     // Save user to database
     await newUser.save();
 
-    return res.status(201).json({
+    res.status(201).json({
       message: 'User created successfully',
       user: newUser,
     });
   } catch (error) {
-    console.error('Error creating user:', error);
-    return res.status(500).json({
-      message: error.message || 'Internal server error',
+    const err = error as Error;
+    res.status(500).json({
+      message: err.message || 'Internal server error',
     });
   }
 };
 
-export const updateUser = async (req: Request, res: Response) => {
+export const updateUser = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { id } = req.params;
 
     // Define allowed fields
-    const allowedFields = [
+    const allowedFields: (keyof IUser)[] = [
       'email',
       'username',
       'password',
@@ -241,18 +251,22 @@ export const updateUser = async (req: Request, res: Response) => {
       'bio',
     ];
 
-    const updateData: Partial<IUser> = allowedFields.reduce((acc, field) => {
-      if (req.body[field] !== undefined) {
-        acc[field] = req.body[field];
-      }
-      return acc;
-    }, {});
+    const updateData: Partial<IUser> = allowedFields.reduce<Partial<IUser>>(
+      (acc, field: keyof IUser) => {
+        if (req.body[field] !== undefined) {
+          acc[field] = req.body[field] as IUser[keyof IUser];
+        }
+        return acc;
+      },
+      {},
+    );
 
     // Fetch the user first
     const user = await User.findById(id);
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
     // Update allowed fields manually
@@ -261,38 +275,45 @@ export const updateUser = async (req: Request, res: Response) => {
     // Save user
     await user.save();
 
-    return res.json({
+    res.json({
       message: 'User updated successfully',
       user,
     });
   } catch (error) {
-    console.error('Error updating user:', error);
-    return res.status(500).json({
-      message: error.message || 'Internal server error',
+    const err = error as Error;
+    res.status(500).json({
+      message: err.message || 'Internal server error',
     });
   }
 };
 
-export const deleteUser = async (req: Request, res: Response) => {
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { id } = req.params;
 
     const user = await User.findByIdAndDelete(id);
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
-    return res.json({ message: 'User deleted successfully' });
+    res.json({ message: 'User deleted successfully' });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      message: error.message || 'Internal server error',
+    const err = error as Error;
+    res.status(500).json({
+      message: err.message || 'Internal server error',
     });
   }
 };
 
-export const activateUser = async (req: Request, res: Response) => {
+export const activateUser = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { id } = req.params;
 
@@ -303,19 +324,23 @@ export const activateUser = async (req: Request, res: Response) => {
     ).select('_id email status');
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
-    return res.json({ message: 'User activated successfully', user });
+    res.json({ message: 'User activated successfully', user });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      message: error.message || 'Internal server error',
+    const err = error as Error;
+    res.status(500).json({
+      message: err.message || 'Internal server error',
     });
   }
 };
 
-export const deactivateUser = async (req: Request, res: Response) => {
+export const deactivateUser = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { id } = req.params;
 
@@ -326,14 +351,15 @@ export const deactivateUser = async (req: Request, res: Response) => {
     ).select('_id email status');
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
-    return res.json({ message: 'User deactivated successfully', user });
+    res.json({ message: 'User deactivated successfully', user });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      message: error.message || 'Internal server error',
+    const err = error as Error;
+    res.status(500).json({
+      message: err.message || 'Internal server error',
     });
   }
 };
