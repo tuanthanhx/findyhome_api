@@ -13,3 +13,8 @@ docker-compose -f docker-compose.yml down
 ```sh:
 npx ts-node src/seeds/20250116_165200_add_users.ts
 ```
+
+
+## TODO:
+- Add logger (winston / morgan)
+- Add tests
